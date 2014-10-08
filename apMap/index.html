@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+svg {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+</style>
+<body>
+<H1>frequency of respiratory impedance pauses</H1>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+var margin = {top: 20, right: 20, bottom: 30, left: 40},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom,
+    buckets =["0","1","3","5","7","10","13","16","19","21","25","30","35","40","45","50","55","60","65","70","80"];
+
+//var x = d3.time.scale()
+ var x = d3.time.scale().range([0, width]);
+
+var y = d3.scale.ordinal()
+    .domain(buckets)
+    .rangeRoundBands([height, 0], .05);
+
+var z = d3.scale.linear()
+    .domain([00, 30])
+    .range(["white", "purple"])
+    .interpolate(d3.interpolateLab);
+
+var formatTime = d3.time.format("%I %p"),
+    formatHour = function (d) {
+      if (d == 12) return "noon";
+      if (d == 24 || d == 0) return "midnight";
+      return formatTime(new Date(2013, 2, 9, d, 00));
+    };
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom")
+    //.tickFormat(formatHour)
+    ;
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+    .tickFormat(d3.format("d"));
+    
+ var parseDate = d3.time.format("%Y-%m-%d %H:%M").parse;
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+d3.json("data/n40078_breaching_ri_pause.json", function(error, data) {
+    
+    
+var barWidth;
+    
+    //data.push(yRange);
+  
+    data.forEach( function(d,i) {
+      
+        d.DAY = d.DAY.concat(" " + d.HOUR + ":00");
+      
+        d.values = [];
+            
+         d.values.push(  d['0'],d['1'],d['3'],d['5'],
+                         d['7'],
+                         d['10'],d['13'],d['16'],d['19'],
+                         d['21'],d['25'],d['30'],d['35'],
+                         d['40'],d['45'],d['50'],d['55'],
+                         d['65'],d['70'],d['80']);
+        
+        
+        
+    });
+   barWidth = width / data.length;
+    
+    var m = data.map(function(d){ return parseDate(d.DAY)});
+    m.push(new Date((+m[m.length-1] - +m[m.length-2]) + +m[m.length-1]))
+ var ext = d3.extent(m);
+    
+    x.domain(ext);
+
+    data.forEach( function(d,i) {
+    
+        var keys = [];
+         for (var o in data) {
+            //console.log(o); 
+             keys.push (o);
+         }
+        
+        console.log(Object.keys(data[i]));
+    });
+    
+    
+    
+  var glucose = svg.selectAll(".glucose")
+      .data(data)
+    .enter( ).append("g")
+      .attr("class", "glucose")
+      ;
+  var glucose2 = glucose.selectAll(".bin")
+      .data(function (d) { 
+          return d.values; })
+    .enter( );
+    
+    glucose2.append("rect")
+      .attr("class", "bin")
+      .attr("x", 
+            
+                            function(d,i,j){
+        
+          return x(parseDate(glucose2[j].parentNode.__data__.DAY));})
+    
+     .attr("y", function(d,i,j) { 
+         //console.log(data.keys);
+         //console.log(glucose2[j].parentNode.__data__);
+         var jsonObj = glucose2[j].parentNode.__data__;
+         var names = [];
+         for (var o in jsonObj) {
+            //console.log(o); 
+             names.push (o);
+         }
+         return y(names[i]);
+         //return y(glucose2[j].parentNode.__data__[j]);
+     } )    
+    
+    .attr("height", y.rangeBand() )
+      .attr("width", function (d, i,j) { 
+          
+          if (j == glucose2.length -1) {
+            return x(parseDate(glucose2[j].parentNode.__data__.DAY)) - x(parseDate(glucose2[j-1].parentNode.__data__.DAY)); 
+          }
+          else {
+            return  x(parseDate(glucose2[j+1].parentNode.__data__.DAY)) - x(parseDate(glucose2[j].parentNode.__data__.DAY)); 
+          }
+      })
+      .style("fill", function(d) { return z(d); });
+    
+ 
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis);
+    
+  svg.append("g")
+    .attr("class", "y axis")
+    .call(yAxis)
+    .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 6)
+    .attr("dy", ".71em")
+    .style("text-anchor", "end")
+    .text("Duration of Pause in Seconds");
+});
+
+</script>
