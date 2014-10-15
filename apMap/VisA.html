@@ -1,0 +1,223 @@
+/*
+// Event-stream Visual Analytic Tool - eVisA
+// Rishikesan Kamaleswaran
+// June 23, 2014
+*/
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+svg {
+  font: 10px sans-serif;
+  background-color: #000;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke:  #696969;
+  shape-rendering: crispEdges;
+}
+
+.axis text {
+  fill: #696969;
+}
+
+div.tooltip {
+  position: absolute;
+  text-align: center;
+  width: 150px;
+  height: 48px;
+  padding: 2px;
+  font: 12px sans-serif;
+  border: 0px;
+  border-radius: 8px;
+  pointer-events: none;
+}
+</style>
+
+</style>
+<body>
+<H1>spells -- durations by conditions</H1>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+var margin = {top: 20, right: 20, bottom: 30, left: 40},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom,
+    p = [20, 50, 30, 20];
+
+ var x = d3.time.scale().range([0, width]);
+// var x = d3.scale.ordinal().rangeRoundBands([0, width - p[1] - p[3]]);
+
+//var x = d3.time.scale().rangeRound([0, width - p[1] - p[3]]);
+
+var y = d3.scale.ordinal()
+    .rangeRoundBands([height, 0], .1);
+
+var z = d3.scale.linear()
+    .domain([0, 2])
+    .range(["black", "orange"])
+    .interpolate(d3.interpolateLab);
+
+
+var cValue = function(d) { return glucose2[j].parentNode.__data__.TYPE;},
+    color = d3.scale.category10();
+
+var formatTime = d3.time.format("%I %p"),
+    formatHour = function (d) {
+      if (d == 12) return "noon";
+      if (d == 24 || d == 0) return "midnight";
+      return formatTime(new Date(d.DAY));
+    };
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom")
+    //.tickFormat(formatHour)
+    ;
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+    .tickFormat(d3.format("d"));
+
+ var parseDate = d3.time.format("%Y-%m-%d %H:%M").parse;
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+d3.json("data/n40078_breaching_ri_pause.json", function(error, data) {
+
+   // var data = data.filter(function(d) { if(d.DURATION>20) { return d.DURATION;}});
+    var binNames = d3.keys(data[0]).filter(function(key) { return key != "DAY" && key != "HOUR" && key != "TYPE"; });
+
+
+
+    data.forEach( function(d) {
+
+        d.DAY = d.DAY.concat(" " + d.HOUR + ":00");
+
+        d.DAY = parseDate(d.DAY);
+
+        d.values = [];
+
+        for (var b=0;b < binNames.length;b++)
+        { d.values.push(d[+binNames[b]]);}
+
+        });
+
+
+    var averages = d3.nest()
+        .key(function(d) { return d.DAY; })
+        .key(function(d) {
+            return d.TYPE })
+        .sortKeys(d3.ascending)
+    .entries(data);
+
+    console.log(averages);
+
+    var m = data.map(function(d){ return d.DAY});
+    m.push(new Date((+m[m.length-1] - +m[m.length-2]) + +m[m.length-1]))
+ var ext = d3.extent(m);
+
+    x.domain(ext);
+    y.domain(binNames);
+
+     var div = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
+  var glucose = svg.selectAll(".glucose")
+      .data(averages)
+    .enter( ).append("g")
+      .attr("class", "g")
+      .attr("transform", function(d) {
+          return "translate(" + x(new Date(d.key)) + ",0)"; });
+
+  var glucose3 = glucose.selectAll(".type")
+        .data(function(d){ return d.values;})
+        .enter().append("g")
+    .attr("class", "type");
+
+  var glucose2 = glucose3.selectAll(".bin")
+      .data(function (d) {
+          return d.values[0].values; })
+    .enter( );
+
+    glucose2.append("rect")
+      .attr("class", "bin")
+       .attr("x", function(d,i,j){
+
+//          return x(glucose2[j].parentNode.__data__.DAY);})
+    return 0;})
+     .attr("y", function(d,i,j) {
+         return y(binNames[i]); })
+
+    .attr("height", y.rangeBand() )
+      .attr("width", function (d, i,j) {
+          if (j == glucose2.length -1) {
+            var
+              d2 = (new Date(glucose2[j].parentNode.parentNode.__data__.key)),
+              d1 = (new Date(glucose2[j-1].parentNode.parentNode.__data__.key));
+            return x(d2) - x(d1);
+          }
+          else {
+              var d3 = (new Date(glucose2[j+1].parentNode.parentNode.__data__.key)),
+              d2 = (new Date(glucose2[j].parentNode.parentNode.__data__.key));
+            return  x(d3) - x(d2);
+          }
+    })
+
+      .style("fill", function(d,i,j) {
+
+               return z(d); }
+
+    );
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis);
+
+  svg.append("g")
+    .attr("class", "y axis")
+    .call(yAxis)
+    .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 6)
+    .attr("dy", ".71em")
+    .style("text-anchor", "end")
+    .text("Duration of Pause");
+});
+
+// *********** Setting up the Brush ************** //
+
+    var brush = d3.svg.brush()
+        .x(x)
+    .on("brush", brushed);
+
+    var zoom = d3.behavior.zoom().x(x).scaleExtent([0,10])
+    .on("zoom", zoomed);//.x(x).scaleExtent([1,10])
+
+    function brushed() {
+  x.domain(brush.empty() ? x2.domain() : brush.extent());
+  focus.select("#data1").attr("d", areaFill);
+  focus.select("#data2").attr("d", areaFill);
+  focus.select("#mean1").attr("d", meanline(data1));
+  focus.select("#mean2").attr("d", meanline(data2));
+  focus.select(".x.axis").call(xAxis);
+
+  //Since domain has been modified, call zoom again
+  zoom.x(x);
+}
+
+</script>

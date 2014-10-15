@@ -1,0 +1,53 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>frequency of respiratory impedance pauses</title>
+
+  <style type="text/css">
+        svg {
+      font: 10px sans-serif;
+      background-color: #FFF;
+    }
+
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke:  #696969;
+      shape-rendering: crispEdges;
+    }
+
+    .axis text {
+      fill: #696969;
+    }
+
+    div.tooltip {
+      position: absolute;
+      text-align: center;
+      width: 150px;
+      height: 48px;
+      padding: 2px;
+      font: 12px sans-serif;
+      border: 0px;
+      border-radius: 8px;
+      pointer-events: none;
+    }
+
+  </style>
+
+  <!-- Bootstrap/CSS -->
+  <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+  <!--- D3, Angular, Bootstrap -->
+  <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
+ <!-- <script src="js/bootstrap.min.js"></script> -->
+  <!--- my app -->
+  <script type="text/javascript" src="js/physMap.js"></script>
+
+</head>
+<body ng-app="physioMap" ng-controller="MainCtrl">
+  <h1>physio Ang App</h1>
+<ap-map data="apMapData"></ap-map>
+</body>
+</html>
+
