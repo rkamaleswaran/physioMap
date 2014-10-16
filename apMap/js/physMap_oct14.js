@@ -1,71 +1,47 @@
-
 var app = angular.module('physioMap', []);
 
-app.controller('MainCtrl', function($scope, riPauseFactory, $interval){
+app.controller('MainCtrl', function($scope, $http, $interval){
   $interval(function(){
-    //$http.get('data/n40078_breaching_ri_pause.json').then(function(response){
+    $http.get('data/n40078_breaching_ri_pause.json').then(function(response){
       // json is queried every second
       // updating with new data each time!
-         var data = riPauseFactory.content.map(function(d){ return d; });
-        $scope.apMapData = data;
-        console.log("I'm working!");
-
-    }
-      , 10000);
-});
-
-app.factory('physioDataFactory', [function ($http) {
-
-  var obj = {content:null};
-
-  return {
-    // getHRAsync : function(callback) {
-    //   $http.get('data/n40078_breaching_hr.json').success(console.log(callback),callback);
-    //   ;
-    // },
-    // getSPO2Async : function(callback) {
-    //   $http.get('data/n40078_breaching_spo2.json').success(callback);
-    // },
-    getRIPauseAsync : function() {
-
-      return $http.get('data/n40078_breaching_ri_pause.json').success(function(data) {
-        // you can do some processing here
-        obj.content = data;
-    });
-      return obj;
-    }
-  };
-}])
-
-app.factory('riPauseFactory', function($http) {
-
-    var obj = {content:null};
-
-    $http.get('data/n40078_breaching_ri_pause.json').success(function(data) {
-        // you can do some processing here
+      var data = response.data
+        .map(function(d){ return d; });
         var binNames = d3.keys(data[0]).filter(function(key) { return key != "DAY" && key != "HOUR" && key != "TYPE"; });
+
         var parseDate = d3.time.format("%Y-%m-%d %H:%M").parse;
 
-        data.forEach( function(d) {
+      data.forEach( function(d) {
+
         d.DAY = d.DAY.concat(" " + d.HOUR + ":00");
+
         d.DAY = parseDate(d.DAY);
+
         d.values = [];
-           for (var b=0;b < binNames.length;b++)
-           { d.values.push( parseInt(d[+binNames[b]],10));}
-        });
 
-        obj.content = data;
+         for (var b=0;b < binNames.length;b++)
+         { d.values.push( parseInt(d[+binNames[b]],10));}
+
+         });
+
+       //  var averages = d3.nest()
+       //      .key(function(d) { return d.DAY; })
+       //      .sortKeys(d3.ascending)
+       //  .entries(data);
+
+       // console.log(averages);
+
+
+
+      $scope.apMapData = data;
+    }, function(err){
+      throw err;
     });
-
-    return obj;
+  }, 1000);
 });
-
 
 app.directive('apMap', function(){
   function link(scope, el, attr){
-
-
-
     el = el[0];
     var margin = {top: 20, right: 20, bottom: 30, left: 40},
     width = 840 - margin.left - margin.right,
