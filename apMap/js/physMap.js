@@ -1,71 +1,54 @@
 
 var app = angular.module('physioMap', []);
 
-app.controller('MainCtrl', function($scope, riPauseFactory, $interval){
+app.controller('MainCtrl', function($scope, physioFactory, $interval){
   $interval(function(){
-    //$http.get('data/n40078_breaching_ri_pause.json').then(function(response){
       // json is queried every second
       // updating with new data each time!
-         var data = riPauseFactory.content.map(function(d){ return d; });
-        $scope.apMapData = data;
-        console.log("I'm working!");
 
+      physioFactory('ri_pause').success(function(data) {
+              // processing the JSON input (extracting keys & values)
+              var binNames = d3.keys(data[0]).filter(function(key) { return key != "DAY" && key != "HOUR" && key != "TYPE"; });
+              var parseDate = d3.time.format("%Y-%m-%d %H:%M").parse;
+              var obj = {};
+
+              //preprocess dates and separate keyvals for d3 render
+              data.forEach( function(d) {
+              d.DAY = d.DAY.concat(" " + d.HOUR + ":00");
+              d.DAY = parseDate(d.DAY);
+
+              //spit out an object with just the key value of each bin
+              for (i=0; i<binNames.length; i++) {
+                obj[binNames[i]] = parseInt(d[binNames[i]], 10);
+              }
+
+              //add object to d in data
+              d.obj = obj;
+
+              d.values = [];
+                 for (var b=0;b < binNames.length;b++)
+                 { d.values.push( parseInt(d[+binNames[b]],10));}
+              });
+
+              //add data to ng scope
+              $scope.apMapData = data;
+          });
     }
-      , 10000);
+      , 1000);
 });
 
-app.factory('physioDataFactory', [function ($http) {
-
-  var obj = {content:null};
-
-  return {
-    // getHRAsync : function(callback) {
-    //   $http.get('data/n40078_breaching_hr.json').success(console.log(callback),callback);
-    //   ;
-    // },
-    // getSPO2Async : function(callback) {
-    //   $http.get('data/n40078_breaching_spo2.json').success(callback);
-    // },
-    getRIPauseAsync : function() {
-
-      return $http.get('data/n40078_breaching_ri_pause.json').success(function(data) {
-        // you can do some processing here
-        obj.content = data;
-    });
-      return obj;
-    }
-  };
-}])
-
-app.factory('riPauseFactory', function($http) {
-
-    var obj = {content:null};
-
-    $http.get('data/n40078_breaching_ri_pause.json').success(function(data) {
-        // you can do some processing here
-        var binNames = d3.keys(data[0]).filter(function(key) { return key != "DAY" && key != "HOUR" && key != "TYPE"; });
-        var parseDate = d3.time.format("%Y-%m-%d %H:%M").parse;
-
-        data.forEach( function(d) {
-        d.DAY = d.DAY.concat(" " + d.HOUR + ":00");
-        d.DAY = parseDate(d.DAY);
-        d.values = [];
-           for (var b=0;b < binNames.length;b++)
-           { d.values.push( parseInt(d[+binNames[b]],10));}
-        });
-
-        obj.content = data;
-    });
-
-    return obj;
-});
-
+app.factory('physioFactory', function($http) {
+           var obj = {content:null};
+             return function (id) {
+                return $http({
+                  method: 'GET',
+                  url: "data/n40078_breaching_" + id + ".json"
+                });
+             }
+         });
 
 app.directive('apMap', function(){
   function link(scope, el, attr){
-
-
-
     el = el[0];
     var margin = {top: 20, right: 20, bottom: 30, left: 40},
     width = 840 - margin.left - margin.right,
@@ -76,7 +59,6 @@ app.directive('apMap', function(){
     var x = d3.time.scale().range([0, width]);
 
     var y = d3.scale.ordinal()
-      .domain(buckets)
       .rangeRoundBands([height, 0], .05);
 
     var z = d3.scale.linear()
@@ -114,13 +96,13 @@ app.directive('apMap', function(){
     scope.$watch('data', function(data){
 
        if(!data){ return; }
-
+      var binNames = d3.keys(data[0]).filter(function(key) { return key != "DAY" && key != "HOUR" && key != "TYPE"; });
       var m = data.map(function(d){ return d.DAY});
         m.push(new Date((+m[m.length-1] - +m[m.length-2]) + +m[m.length-1]))
       var ext = d3.extent(m);
 
       var parseDate = d3.time.format("%Y-%m-%d %H:%M").parse;
-
+       y.domain(binNames);
 
       barWidth = width / data.length;
 
