@@ -1,11 +1,18 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>frequency of respiratory impedance pauses</title>
-
+  <title>physioMap - version 1.0</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style type="text/css">
-        svg {
+
+
+    body {
+    padding: 50px
+    }
+
+
+    svg {
       font: 10px sans-serif;
       background-color: #FFF;
     }
@@ -38,16 +45,56 @@
   <!-- Bootstrap/CSS -->
   <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
   <!--- D3, Angular, Bootstrap -->
+  <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
   <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
   <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
- <!-- <script src="js/bootstrap.min.js"></script> -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
   <!--- my app -->
   <script type="text/javascript" src="js/physMap.js"></script>
 
 </head>
 <body ng-app="physioMap" ng-controller="MainCtrl">
+
+<div class="container-fluid">
   <h1>physio Ang App</h1>
-<ap-map data="apMapData"></ap-map>
+
+  <selection ng-controller="TabCtrl as tab">
+
+    <ul class="nav nav-pills">
+            <li ng-class="{ active:tab.isSet('ri_pause') }">
+              <a href="" ng-click="tab.setTab('ri_pause')">Respiratory Pause Map</a>
+            </li>
+            <li ng-class="{ active:tab.isSet('hr') }">
+              <a href="" ng-click="tab.setTab('hr')">Heart Rate Variation Map</a>
+            </li>
+            <li ng-class="{ active:tab.isSet('spo2') }">
+              <a href="" ng-click="tab.setTab('spo2')">SpO2 Variation Map</a>
+            </li>
+          </ul>
+
+          <div ng-show="tab.isSet('ri_pause')">
+            <h4>Isolated Respiratory Pause</h4>
+            <blockquote>Events characterize isolated respiratory impedence pause as detected within a spells episode.</blockquote>
+          </div>
+
+          <div ng-show="tab.isSet('hr')">
+            <h4>Heart Rate Map</h4>
+            <blockquote>Events characterize the percentage of difference in heart rate value during a potential episode. </blockquote>
+          </div>
+
+          <div ng-show="tab.isSet('spo2')">
+            <h4>Oxygen Saturation Map</h4>
+            <blockquote>Events characterize the percentage of difference in oxygen saturation (SpO2) value during a potential episode</blockquote>
+          </div>
+
+          <ap-map data="apMapData"></ap-map>
+
+  </selection>
+
+
+  </div>
+
 </body>
 </html>
 
