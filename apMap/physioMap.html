@@ -62,28 +62,28 @@
   <selection ng-controller="TabCtrl as tab">
 
     <ul class="nav nav-pills">
-            <li ng-class="{ active:tab.isSet('ri_pause') }">
-              <a href="" ng-click="tab.setTab('ri_pause')">Respiratory Pause Map</a>
+            <li ng-class="{ active:isSet('ri_pause') }">
+              <a href="" ng-click="setTab('ri_pause')">Respiratory Pause Map</a>
             </li>
-            <li ng-class="{ active:tab.isSet('hr') }">
-              <a href="" ng-click="tab.setTab('hr')">Heart Rate Variation Map</a>
+            <li ng-class="{ active:isSet('hr') }">
+              <a href="" ng-click="setTab('hr')">Heart Rate Variation Map</a>
             </li>
-            <li ng-class="{ active:tab.isSet('spo2') }">
-              <a href="" ng-click="tab.setTab('spo2')">SpO2 Variation Map</a>
+            <li ng-class="{ active:isSet('spo2') }">
+              <a href="" ng-click="setTab('spo2')">SpO2 Variation Map</a>
             </li>
           </ul>
 
-          <div ng-show="tab.isSet('ri_pause')">
+          <div ng-show="isSet('ri_pause')">
             <h4>Isolated Respiratory Pause</h4>
             <blockquote>Events characterize isolated respiratory impedence pause as detected within a spells episode.</blockquote>
           </div>
 
-          <div ng-show="tab.isSet('hr')">
+          <div ng-show="isSet('hr')">
             <h4>Heart Rate Map</h4>
             <blockquote>Events characterize the percentage of difference in heart rate value during a potential episode. </blockquote>
           </div>
 
-          <div ng-show="tab.isSet('spo2')">
+          <div ng-show="isSet('spo2')">
             <h4>Oxygen Saturation Map</h4>
             <blockquote>Events characterize the percentage of difference in oxygen saturation (SpO2) value during a potential episode</blockquote>
           </div>

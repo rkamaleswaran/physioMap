@@ -1,26 +1,17 @@
 
 var app = angular.module('physioMap', []);
 
-app.controller('TabCtrl', function($scope, actFactory) {
-  this.tab = 'ri_pause';
 
-  this.setTab = function(tab) {
-    this.tab = tab;
-  };
 
-  this.isSet = function(tab) {
-    return (this.tab === tab);
-  };
-
-})
-
-app.controller('MainCtrl', function($scope, physioFactory, $interval){
+app.controller('MainCtrl', function($scope, physioFactory, tabFactory, $interval){
 
   $interval(function(){
       // json is queried every second
       // updating with new data each time!
+      //
 
-      physioFactory('ri_pause').success(function(data) {
+       changeMap = function(tab) {
+      physioFactory(tab).success(function(data) {
               // processing the JSON input (extracting keys & values)
               var binNames = d3.keys(data[0]).filter(function(key) { return key != "DAY" && key != "HOUR" && key != "TYPE"; });
               var parseDate = d3.time.format("%Y-%m-%d %H:%M").parse;
@@ -30,14 +21,6 @@ app.controller('MainCtrl', function($scope, physioFactory, $interval){
               data.forEach( function(d) {
               d.DAY = d.DAY.concat(" " + d.HOUR + ":00");
               d.DAY = parseDate(d.DAY);
-
-              //spit out an object with just the key value of each bin
-              for (i=0; i<binNames.length; i++) {
-                obj[binNames[i]] = parseInt(d[binNames[i]], 10);
-              }
-
-              //add object to d in data
-              d.obj = obj;
 
               d.values = [];
                  for (var b=0;b < binNames.length;b++)
@@ -49,8 +32,26 @@ app.controller('MainCtrl', function($scope, physioFactory, $interval){
               $scope.apMapData = data;
           });
     }
+  }
       , 1000);
 });
+
+app.controller('TabCtrl', function($scope,tabFactory) {
+
+  $scope.tab = 'ri_pause';
+
+  $scope.setTab = function(tab) {
+    $scope.tab = tab;
+    changeMap(tab);
+
+    // use $apply to call function in MainCtrl which sends the 'tab'... this can be used as a message to physioFactory.
+  };
+
+  $scope.isSet = function(tab) {
+    return ($scope.tab === tab);
+  };
+
+})
 
 app.factory('physioFactory', function($http) {
            var obj = {content:null};
@@ -63,13 +64,20 @@ app.factory('physioFactory', function($http) {
          });
 
 app.factory('tabFactory', [function ($rootScope) {
-  var selectedTab = {};
+  var mySelected = {};
 
-    selectedTab.tab = '';
+    mySelected.tab = '';
 
-  return {
-    sharedAct;
-  };
+    mySelected.prepForBroadcast = function(msg) {
+      this.tab = msg;
+      this.broadcastItem();
+    };
+
+    mySelected.broadcastItem = function() {
+      $rootScope.$broadcast('handleBroadcast');
+    };
+
+  return mySelected;
 }])
 
 app.directive('apMap', function(){
@@ -77,7 +85,7 @@ app.directive('apMap', function(){
     el = el[0];
     var margin = {top: 20, right: 20, bottom: 30, left: 40},
     width = 840 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom,
+    height = 500 - margin.top - margin.bottom;
 
       //var x = d3.time.scale()
     var x = d3.time.scale().range([0, width]);
@@ -119,14 +127,15 @@ app.directive('apMap', function(){
 
     scope.$watch('data', function(data){
 
-       if(!data){ return; }
+       if(!data){ return; };
+
+       if(data){ svg.selectAll("*").remove()
+                  ; };
+
       var binNames = d3.keys(data[0]).filter(function(key) { return key != "DAY" && key != "HOUR" && key != "obj" && key != "values" && key != "TYPE"; });
       var m = data.map(function(d){ return d.DAY});
         m.push(new Date((+m[m.length-1] - +m[m.length-2]) + +m[m.length-1]))
       var ext = d3.extent(m);
-
-      var binWidth = (ext[1] - ext[0]);
-
       var parseDate = d3.time.format("%Y-%m-%d %H:%M").parse;
        y.domain(binNames);
 
@@ -152,44 +161,6 @@ app.directive('apMap', function(){
                 .attr("height", y.rangeBand())
                 .attr("width", width / data.length)
                 .style("fill", function(d) { return z(d); });
-
-      // var glucose2 = glucose.selectAll(".bin")
-      //   .data(function (d) {
-      //   return d.values; })
-      //   .enter( );
-
-      // glucose2.append("rect")
-      //   .attr("class", "bin")
-      //   .attr("x", function(d,i,j){
-      //      //console.log(x(glucose2[j].parentNode.__data__.DAY));
-      //       return x(glucose2[j].parentNode.__data__.DAY);
-      //       //
-      //       })
-
-      //  .attr("y", function(d,i,j) {
-      //      //console.log(data.keys);
-      //      //console.log(glucose2[j].parentNode.__data__);
-      //      var jsonObj = glucose2[j].parentNode.__data__;
-      //      var names = [];
-      //      for (var o in jsonObj) {
-      //         //console.log(o);
-      //          names.push (o);
-      //      }
-      //      return y(names[i]);
-      //      //return y(glucose2[j].parentNode.__data__[j]);
-      //  } )
-
-      // .attr("height", y.rangeBand() )
-      //   .attr("width", function (d, i,j) {
-
-      //       if (j == glucose2.length -1) {
-      //         return x(glucose2[j].parentNode.__data__.DAY) - x(glucose2[j-1].parentNode.__data__.DAY);
-      //       }
-      //       else {
-      //         return  x(glucose2[j+1].parentNode.__data__.DAY) - x(glucose2[j].parentNode.__data__.DAY);
-      //       }
-      //   })
-      // .style("fill", function(d) { return z(d); });
 
       svg.append("g")
           .attr("class", "x axis")
