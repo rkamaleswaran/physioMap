@@ -222,6 +222,31 @@ app.directive('apMap', function(){
   };
 });
 
+app.directive('rawDataMap', [function () {
+  return {
+    restrict: 'E',
+    link: function (scope, el, attr) {
+
+        el = el[0];
+        var margin = {top: 20, right: 20, bottom: 30, left: 40},
+        width = 840 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom;
+
+          var x = d3.time.scale()
+              .range([0, width]);
+
+          var y = d3.scale.linear()
+              .domain([0, 200])
+              .range([height, 0]);
+
+          var line = d3.svg.line();
+
+          var xaxis = d3.svg.axis().scale(x).orient("bottom");
+
+    }
+  };
+}])
+
 app.directive('searchPatient', [function () {
   return {
     restrict: 'E',
