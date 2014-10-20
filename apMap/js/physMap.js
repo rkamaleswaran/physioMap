@@ -19,7 +19,7 @@ app.controller('MainCtrl', function($scope, physioFactory, $interval){
        changeMap = function(tab) {
       physioFactory(tab,$scope.currentPatient).success(function(data) {
               // processing the JSON input (extracting keys & values)
-              var binNames = d3.keys(data[0]).filter(function(key) { return key != "DAY" && key != "PATIENT" && key != "HOUR" && key != "TYPE"; });
+              var binNames = d3.keys(data[0]).filter(function(key) { return key != "DAY" && key != "PATIENT" && key != "HOUR" && key != "TYPE" && key != "UN"; });
               var parseDate = d3.time.format("%Y-%m-%d %H:%M").parse;
               var obj = {};
 
@@ -64,7 +64,6 @@ app.controller('TabCtrl', function($scope,tabFactory) {
 app.factory('physioFactory', function($http) {
            var obj = {content:null};
              return function (id,user) {
-              console.log(user);
                 return $http({
                   method: 'GET',
                   url: "data/"+ user +"_breaching_" + id + ".json"
@@ -155,7 +154,8 @@ app.directive('apMap', function(){
               key != "HOUR" &&
               key != "PATIENT" &&
               key != "values" &&
-              key != "TYPE";
+              key != "TYPE" &&
+              key != "UN";
               });
 
         var m = data.map(function(d){
