@@ -40,17 +40,17 @@
       <div class="row">
 
         <div ng-show="isSet('ri_pause')">
-          <h4>Isolated Respiratory Pause</h4>
+          <h4>{{currentPatient}}'s Isolated Respiratory Pause</h4>
           <blockquote>Events characterize isolated respiratory impedence pause as detected within a spells episode.</blockquote>
         </div>
 
         <div ng-show="isSet('hr')">
-          <h4>Heart Rate Map</h4>
+          <h4>{{currentPatient}}'s Heart Rate Map</h4>
           <blockquote>Events characterize the percentage of difference in heart rate value during a potential episode. </blockquote>
         </div>
 
         <div ng-show="isSet('spo2')">
-          <h4>Oxygen Saturation Map</h4>
+          <h4>{{currentPatient}}'s Oxygen Saturation Map</h4>
           <blockquote>Events characterize the percentage of difference in oxygen saturation (SpO2) value during a potential episode</blockquote>
         </div>
 
