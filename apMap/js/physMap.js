@@ -1,9 +1,15 @@
 
-var app = angular.module('physioMap', []);
+var app = angular.module('physioMap', ['ui.bootstrap']);
 
 
 
-app.controller('MainCtrl', function($scope, physioFactory, tabFactory, $interval){
+app.controller('MainCtrl', function($scope, physioFactory, $interval){
+
+  var currentPatient = '';
+
+  updatePatient = function(user) {
+    $scope.currentPatient = user;
+  }
 
   $interval(function(){
       // json is queried every second
@@ -11,9 +17,9 @@ app.controller('MainCtrl', function($scope, physioFactory, tabFactory, $interval
       //
 
        changeMap = function(tab) {
-      physioFactory(tab).success(function(data) {
+      physioFactory(tab,$scope.currentPatient).success(function(data) {
               // processing the JSON input (extracting keys & values)
-              var binNames = d3.keys(data[0]).filter(function(key) { return key != "DAY" && key != "HOUR" && key != "TYPE"; });
+              var binNames = d3.keys(data[0]).filter(function(key) { return key != "DAY" && key != "PATIENT" && key != "HOUR" && key != "TYPE"; });
               var parseDate = d3.time.format("%Y-%m-%d %H:%M").parse;
               var obj = {};
 
@@ -28,7 +34,6 @@ app.controller('MainCtrl', function($scope, physioFactory, tabFactory, $interval
               });
 
               //add data to ng scope
-
               $scope.apMapData = data;
           });
     }
@@ -43,22 +48,26 @@ app.controller('TabCtrl', function($scope,tabFactory) {
   $scope.setTab = function(tab) {
     $scope.tab = tab;
     changeMap(tab);
-
-    // use $apply to call function in MainCtrl which sends the 'tab'... this can be used as a message to physioFactory.
+    changeMapColor(tab);
   };
 
   $scope.isSet = function(tab) {
     return ($scope.tab === tab);
   };
 
+  $scope.update = function(user) {
+    updatePatient(user);
+  }
+
 })
 
 app.factory('physioFactory', function($http) {
            var obj = {content:null};
-             return function (id) {
+             return function (id,user) {
+              console.log(user);
                 return $http({
                   method: 'GET',
-                  url: "data/n40078_breaching_" + id + ".json"
+                  url: "data/"+ user +"_breaching_" + id + ".json"
                 });
              }
          });
@@ -95,7 +104,6 @@ app.directive('apMap', function(){
 
     var z = d3.scale.linear()
       .domain([00, 30])
-      .range(["white", "purple"])
       .interpolate(d3.interpolateLab);
 
     var formatTime = d3.time.format("%I %p"),
@@ -116,14 +124,23 @@ app.directive('apMap', function(){
       .orient("left")
       .tickFormat(d3.format("d"));
 
-
-
     var svg = d3.select("body").append("svg")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
     .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+    changeMapColor = function(tab) {
+      switch (tab) {
+         case 'ri_pause': z.range(["white", "purple"]);
+              break;
+         case 'hr' : z.range(["white", "red"]);
+              break;
+         case 'spo2': z.range(["white", "orange"]);
+              break;
+          default: z.range(["white", "black"]);
+      };
+    };
 
     scope.$watch('data', function(data){
 
@@ -132,23 +149,39 @@ app.directive('apMap', function(){
        if(data){ svg.selectAll("*").remove()
                   ; };
 
-      var binNames = d3.keys(data[0]).filter(function(key) { return key != "DAY" && key != "HOUR" && key != "obj" && key != "values" && key != "TYPE"; });
-      var m = data.map(function(d){ return d.DAY});
-        m.push(new Date((+m[m.length-1] - +m[m.length-2]) + +m[m.length-1]))
-      var ext = d3.extent(m);
-      var parseDate = d3.time.format("%Y-%m-%d %H:%M").parse;
-       y.domain(binNames);
+        var binNames = d3.keys(data[0])
+            .filter(function(key) {
+              return key != "DAY" &&
+              key != "HOUR" &&
+              key != "PATIENT" &&
+              key != "values" &&
+              key != "TYPE";
+              });
+
+        var m = data.map(function(d){
+          return d.DAY
+          });
+
+          m.push(new Date((+m[m.length-1] - +m[m.length-2]) + +m[m.length-1]))
+
+        var ext = d3.extent(m);
+
+        var parseDate = d3.time.format("%Y-%m-%d %H:%M").parse;
+
+        y.domain(binNames);
 
         x.domain(ext);
 
-      var physMap = svg.selectAll(".physMap")
-        .data(data)
-        .enter( ).append("g")
-        .attr("class", "physMap")
-        ;
+        var physMap = svg.selectAll(".physMap")
+          .data(data)
+          .enter( ).append("g")
+          .attr("class", "physMap")
+          ;
 
-      var mapBins = physMap.selectAll(".bin").data(function (d) {
-            return d.values; }).enter();
+        var mapBins = physMap.selectAll(".bin")
+              .data(function (d) {
+              return d.values; })
+              .enter();
 
           mapBins.append("rect")
                 .attr("class", "bin")
@@ -162,29 +195,64 @@ app.directive('apMap', function(){
                 .attr("width", width / data.length)
                 .style("fill", function(d) { return z(d); });
 
-      svg.append("g")
-          .attr("class", "x axis")
-          .attr("transform", "translate(0," + height + ")")
-          .call(xAxis);
+          svg.append("g")
+              .attr("class", "x axis")
+              .attr("transform", "translate(0," + height + ")")
+              .call(xAxis);
 
-      svg.append("g")
-          .attr("class", "y axis")
-          .call(yAxis);
+          svg.append("g")
+              .attr("class", "y axis")
+              .call(yAxis);
 
-      svg.append("g")
-        .attr("class", "y axis")
-        .call(yAxis)
-        .append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 6)
-        .attr("dy", ".71em")
-        .style("text-anchor", "end")
-        .text("Duration of Pause in Seconds");
-    }, true);
+          svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+            .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text("Duration of Pause in Seconds");
+        }, true);
   }
   return {
     link: link,
     restrict: 'E',
     scope: { data: '=' }
   };
+});
+
+app.directive('searchPatient', [function () {
+  return {
+    restrict: 'E',
+    templateUrl: 'pages/searchPatient.html'
+  };
+}])
+
+app.directive('navMenu', [function () {
+  return {
+    restrict: 'E',
+    templateUrl: 'pages/navMenu.html'
+  };
+}])
+
+app.controller('fillCtrl', function ($scope, $http) {
+
+  getPatients();
+
+  function getPatients() {
+     $http.get('data/patients.json').success(function(data){
+      console.log(data);
+      $scope.patients = data;
+    });
+  };
+
+})
+
+app.controller('TabsCtrl', function ($scope) {
+  $scope.tabs = [
+    { title:'Respiratory Pause Map', disabled: true },
+    { title:'Heart Rate Variation Map', disabled: true },
+    { title:'SpO2 Variation Map', disabled: true },
+  ];
 });

@@ -1,0 +1,11 @@
+        <div class="col-md-4" ng-controller="fillCtrl">
+            <div class="col-lg-12">
+              <div class="input-group">
+                <input type="text" ng-model="patientID" placeholder="Enter PatientID" typeahead="patient.Patient for patient in patients | filter:$viewValue | limitTo:6" typeahead-loading="loadingPatients" class="form-control">
+                <i ng-show="loadingPatients" class="glyphicon glyphicon-refresh"></i>
+                <span class="input-group-btn">
+                  <button class="btn btn-default" ng-click="update(patientID)" type="button">Go!</button>
+                </span>
+              </div><!-- /input-group -->
+            </div><!-- /.col-lg-6 -->
+        </div>

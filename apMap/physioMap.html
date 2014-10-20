@@ -2,48 +2,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>physioMap - version 1.0</title>
+  <title>physioMap - v1.0</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style type="text/css">
 
-
-    body {
-    padding: 50px
-    }
-
-
-    svg {
-      font: 10px sans-serif;
-      background-color: #FFF;
-    }
-
-    .axis path,
-    .axis line {
-      fill: none;
-      stroke:  #696969;
-      shape-rendering: crispEdges;
-    }
-
-    .axis text {
-      fill: #696969;
-    }
-
-    div.tooltip {
-      position: absolute;
-      text-align: center;
-      width: 150px;
-      height: 48px;
-      padding: 2px;
-      font: 12px sans-serif;
-      border: 0px;
-      border-radius: 8px;
-      pointer-events: none;
-    }
-
-  </style>
 
   <!-- Bootstrap/CSS -->
-  <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/physioMap.css" rel="stylesheet">
   <!--- D3, Angular, Bootstrap -->
   <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
   <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
@@ -52,48 +19,49 @@
 
   <!--- my app -->
   <script type="text/javascript" src="js/physMap.js"></script>
+  <script type="text/javascript" src="js/ui-bootstrap-tpls-0.11.2.min.js"></script>
 
 </head>
 <body ng-app="physioMap" ng-controller="MainCtrl">
 
-<div class="container-fluid">
-  <h1>physio Ang App</h1>
+  <div class="container-fluid">
 
-  <selection ng-controller="TabCtrl as tab">
+    <h1>PhysioMap- clinical visual analysis</h1>
 
-    <ul class="nav nav-pills">
-            <li ng-class="{ active:isSet('ri_pause') }">
-              <a href="" ng-click="setTab('ri_pause')">Respiratory Pause Map</a>
-            </li>
-            <li ng-class="{ active:isSet('hr') }">
-              <a href="" ng-click="setTab('hr')">Heart Rate Variation Map</a>
-            </li>
-            <li ng-class="{ active:isSet('spo2') }">
-              <a href="" ng-click="setTab('spo2')">SpO2 Variation Map</a>
-            </li>
-          </ul>
+    <selection ng-controller="TabCtrl as tab">
 
-          <div ng-show="isSet('ri_pause')">
-            <h4>Isolated Respiratory Pause</h4>
-            <blockquote>Events characterize isolated respiratory impedence pause as detected within a spells episode.</blockquote>
-          </div>
+    <div class="row">
 
-          <div ng-show="isSet('hr')">
-            <h4>Heart Rate Map</h4>
-            <blockquote>Events characterize the percentage of difference in heart rate value during a potential episode. </blockquote>
-          </div>
+        <nav-menu></nav-menu>
 
-          <div ng-show="isSet('spo2')">
-            <h4>Oxygen Saturation Map</h4>
-            <blockquote>Events characterize the percentage of difference in oxygen saturation (SpO2) value during a potential episode</blockquote>
-          </div>
+        <search-patient></search-patient>
 
-          <ap-map data="apMapData"></ap-map>
+      </div>
+      <div class="row">
 
-  </selection>
+        <div ng-show="isSet('ri_pause')">
+          <h4>Isolated Respiratory Pause</h4>
+          <blockquote>Events characterize isolated respiratory impedence pause as detected within a spells episode.</blockquote>
+        </div>
 
+        <div ng-show="isSet('hr')">
+          <h4>Heart Rate Map</h4>
+          <blockquote>Events characterize the percentage of difference in heart rate value during a potential episode. </blockquote>
+        </div>
 
-  </div>
+        <div ng-show="isSet('spo2')">
+          <h4>Oxygen Saturation Map</h4>
+          <blockquote>Events characterize the percentage of difference in oxygen saturation (SpO2) value during a potential episode</blockquote>
+        </div>
+
+        </div>
+
+        <ap-map data="apMapData"></ap-map>
+
+    </selection>
+
+ </div>
+
 
 </body>
 </html>
