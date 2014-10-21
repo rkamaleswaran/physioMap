@@ -162,7 +162,7 @@ app.directive('apMap', function(){
           return d.DAY
           });
 
-          m.push(new Date((+m[m.length-1] - +m[m.length-2]) + +m[m.length-1]))
+         m.push(new Date((+m[m.length-1] - +m[m.length-2]) + +m[m.length-1]))
 
         var ext = d3.extent(m);
 
@@ -242,6 +242,68 @@ app.directive('rawDataMap', [function () {
           var line = d3.svg.line();
 
           var xaxis = d3.svg.axis().scale(x).orient("bottom");
+
+          var svg = d3.select("body").append("svg")
+              .attr("width", width + margin.left + margin.right)
+              .attr("height", height + margin.top + margin.bottom)
+              .attr("id","hrsvg")
+              .append("g")
+              .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+          svghr.append("defs").append("clipPath")
+            .attr("id", "clip")
+            .append("rect")
+            .attr("width", width)
+            .attr("height", height);
+
+          svghr.append("g")
+            .attr("class", "y axis")
+            .call(d3.svg.axis().scale(yhr).orient("left"));
+
+          svghr.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + yhr(50) + ")")
+            .call(xaxis);
+
+          var pathhr = svghr.append("g")
+            .attr("clip-path", "url(#clip)")
+            .append("path");
+
+          var hrDispVal = d3.select("#hrsvg").append("svg")
+              .attr("width", 200)
+              .attr("height", 200).attr("transform", "translate(" + width + "," + 0 + ")")
+              .append("p").attr("transform", "translate(20," + 20 + ")")
+              .attr("id","hrlbl");
+
+          var parseDate = d3.time.format("%X").parse;
+
+          d3.json("data/hrData", function(points){
+            x.domain(d3.extent(points.map(function(d){return parseDate(d.time);})));
+
+            // var temp = d3.extent(points.map(function(d){return parseDate(d.time);}));
+            // x.domain([Math.max(x.domain()[0],d3.min(temp)),Math.max(x.domain()[1],d3.max(temp))]);
+            // //    y.domain([0, Math.max(d3.max(points.map(function(d){return d.RRVALUE+10;})), y.domain()[1])]);
+
+            svghr.select(".x.axis").call(xaxis);
+
+                var bound = svghr.selectAll("circle").data(points);
+                bound.exit().remove();
+                bound.enter().append("svg:circle").attr("fill", "salmon");
+
+                bound.attr("cx", function(d){return x(parseDate(d.time))})
+                    .attr("cy", function(d){return yhr(d.value)})
+                    .attr("r", 3)
+                    .attr("fill", "salmon")
+                    .attr("clip-path", "url(#clip)");
+
+                pathhr.datum(points)
+                .attr("class", "line")
+                .attr("d", line.x(function(d) { return x(parseDate(d.time)); })
+                               .y(function(d) { return yhr(d.value); }));
+
+              document.getElementById("#hrlbl").innerHTML = points[points.length-1].value;
+
+          });
 
     }
   };
